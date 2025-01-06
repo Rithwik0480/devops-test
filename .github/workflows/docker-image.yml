@@ -15,14 +15,26 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+
     - name: Log in to Docker Hub
       run: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
       env:
         DOCKER_USERNAME: rithwwik
         DOCKER_PASSWORD: docker123
+
+    - name: Set Docker tag
+      id: docker_tag
+      run: echo "tag=${GITHUB_SHA::7}" >> $GITHUB_ENV
+
     - name: Build the Docker image
       run: docker build -t login-app . -f Dockerfile
+
     - name: Tag the Docker image
-      run: docker tag login-app rithwwik/login-app:latest
+      run: |
+        docker tag login-app rithwwik/login-app:latest
+        docker tag login-app rithwwik/login-app:${{ env.tag }}
+
     - name: Push the Docker image to Docker Hub
-      run: docker push rithwwik/login-app:latest
+      run: |
+        docker push rithwwik/login-app:latest
+        docker push rithwwik/login-app:${{ env.tag }}
