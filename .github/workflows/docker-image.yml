@@ -49,11 +49,3 @@ jobs:
       run: |
         docker push rithwwik/login-app:latest
         docker push rithwwik/login-app:${{ env.new_tag }}
-
-    - name: Push Git Tag
-      if: github.ref == 'refs/heads/main'
-      run: |
-        git config user.name "GitHub Actions"
-        git config user.email "actions@github.com"
-        git tag ${{ env.new_tag }}
-        git push origin ${{ env.new_tag }}
