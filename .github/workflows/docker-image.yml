@@ -8,7 +8,6 @@ on:
   workflow_dispatch:
 
 jobs:
-
   build:
 
     runs-on: ubuntu-latest
@@ -22,9 +21,21 @@ jobs:
         DOCKER_USERNAME: rithwwik
         DOCKER_PASSWORD: docker123
 
-    - name: Set Docker tag
-      id: docker_tag
-      run: echo "tag=${GITHUB_SHA::7}" >> $GITHUB_ENV
+    - name: Set Semantic Version Tag
+      id: semantic_tag
+      run: |
+        # Get the latest tag
+        latest_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+        
+        # Parse the latest tag and increment the patch version
+        major=$(echo $latest_tag | cut -d. -f1 | sed 's/v//')
+        minor=$(echo $latest_tag | cut -d. -f2)
+        patch=$(echo $latest_tag | cut -d. -f3)
+        new_patch=$((patch + 1))
+        
+        # Set the new tag
+        new_tag="v${major}.${minor}.${new_patch}"
+        echo "new_tag=$new_tag" >> $GITHUB_ENV
 
     - name: Build the Docker image
       run: docker build -t login-app . -f Dockerfile
@@ -32,9 +43,17 @@ jobs:
     - name: Tag the Docker image
       run: |
         docker tag login-app rithwwik/login-app:latest
-        docker tag login-app rithwwik/login-app:${{ env.tag }}
+        docker tag login-app rithwwik/login-app:${{ env.new_tag }}
 
     - name: Push the Docker image to Docker Hub
       run: |
         docker push rithwwik/login-app:latest
-        docker push rithwwik/login-app:${{ env.tag }}
+        docker push rithwwik/login-app:${{ env.new_tag }}
+
+    - name: Push Git Tag
+      if: github.ref == 'refs/heads/main'
+      run: |
+        git config user.name "GitHub Actions"
+        git config user.email "actions@github.com"
+        git tag ${{ env.new_tag }}
+        git push origin ${{ env.new_tag }}
