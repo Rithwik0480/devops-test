@@ -11,7 +11,7 @@ COPY index.html ./
 RUN npm install -g serve
 
 # Expose the port the app runs on
-EXPOSE 3005
+EXPOSE 3000
 
 # Command to serve the HTML file
-CMD ["serve", "-s", ".", "-l", "3005"]
+CMD ["serve", "-s", ".", "-l", "3000"]
